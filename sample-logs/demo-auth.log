@@ -1,0 +1,7 @@
+2026-05-09T09:14:22Z INFO user=alice action=login status=success ip=192.0.2.10
+2026-05-09T09:16:03Z WARN user=bob action=login status=failed ip=198.51.100.23 reason=bad_password
+2026-05-09T09:16:18Z WARN user=bob action=login status=failed ip=198.51.100.23 reason=bad_password
+2026-05-09T09:16:44Z WARN user=bob action=login status=failed ip=198.51.100.23 reason=bad_password
+2026-05-09T09:17:02Z ERROR user=service_admin action=login status=failed ip=203.0.113.77 reason=bad_password
+2026-05-09T09:18:30Z WARN user=tester action=password_reset status=requested ip=192.0.2.50 token=demo-token-should-be-redacted
+2026-05-09T09:21:11Z INFO user=carol action=logout status=success ip=192.0.2.11
