@@ -1,0 +1,38 @@
+# Operating system files
+.DS_Store
+Thumbs.db
+
+# Editor files
+.vscode/
+.idea/
+
+# Logs
+*.log
+
+# Environment files
+.env
+.env.local
+.env.*.local
+
+# Node / React
+frontend/node_modules/
+frontend/dist/
+
+# Java / Spring Boot
+backend/target/
+backend/.mvn/wrapper/maven-wrapper.jar
+
+# Python
+parser-service/.venv/
+parser-service/__pycache__/
+parser-service/*.pyc
+
+# Uploads and temporary files
+uploads/
+tmp/
+temp/
+
+# Database
+*.db
+*.sqlite
+*.sqlite3
