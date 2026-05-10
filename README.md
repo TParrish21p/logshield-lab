@@ -303,6 +303,7 @@ docs/architecture/phase-4-frontend-mvp-notes.md
 docs/architecture/phase-6-postgresql-notes.md
 docs/security/phase-5-demo-analysis-notes.md
 docs/security/phase-7-auth-roles-notes.md
+docs/security/threat-model.md
 ```
 
 ## Status
