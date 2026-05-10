@@ -2,9 +2,18 @@ package com.bizarrestudios.logshieldlab.model;
 
 import java.time.Instant;
 
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+
+@Entity
 public class Incident {
 
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+
     private String title;
     private String description;
     private String severity;
@@ -14,6 +23,16 @@ public class Incident {
     private Instant createdAt;
 
     public Incident() {
+    }
+
+    public Incident(String title, String description, String severity, String status, String source, String notes, Instant createdAt) {
+        this.title = title;
+        this.description = description;
+        this.severity = severity;
+        this.status = status;
+        this.source = source;
+        this.notes = notes;
+        this.createdAt = createdAt;
     }
 
     public Incident(Long id, String title, String description, String severity, String status, String source, String notes, Instant createdAt) {
