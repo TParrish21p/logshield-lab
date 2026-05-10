@@ -1,33 +1,16 @@
 import { useEffect, useState } from 'react';
 import type { ChangeEvent } from 'react';
 import './App.css';
-
-type Incident = {
-  id: number;
-  title: string;
-  description: string;
-  severity: string;
-  status: string;
-  source: string;
-  notes: string;
-  createdAt: string;
-};
-
-type ParserAlert = {
-  title: string;
-  description: string;
-  severity: string;
-  source: string;
-  evidence: string;
-};
-
-type ParserResult = {
-  alertCount: number;
-  alerts: ParserAlert[];
-  redactedPreview: string[];
-};
+import {
+  demoIncidents,
+  demoParserResult,
+  type Incident,
+  type ParserResult,
+} from './demoData';
 
 type DemoRole = 'ADMIN' | 'ANALYST' | 'VIEWER';
+
+const isPublicDemoMode = import.meta.env.VITE_PUBLIC_DEMO === 'true';
 
 function App() {
   const [incidents, setIncidents] = useState<Incident[]>([]);
@@ -45,6 +28,12 @@ function App() {
   }, []);
 
   function loadIncidents() {
+    if (isPublicDemoMode) {
+      setIncidents(demoIncidents);
+      setIsLoading(false);
+      return;
+    }
+
     fetch('http://localhost:8080/api/incidents')
       .then((response) => {
         if (!response.ok) {
@@ -67,6 +56,14 @@ function App() {
     setIsAnalyzingDemo(true);
     setAnalysisErrorMessage('');
     setParserResult(null);
+
+    if (isPublicDemoMode) {
+      window.setTimeout(() => {
+        setParserResult(demoParserResult);
+        setIsAnalyzingDemo(false);
+      }, 450);
+      return;
+    }
 
     fetch('http://localhost:8080/api/demo/analyze', {
       method: 'POST',
@@ -97,6 +94,11 @@ function App() {
   }
 
   function analyzeSelectedFile() {
+    if (isPublicDemoMode) {
+      setAnalysisErrorMessage('File upload is disabled in public demo mode. Use Analyze Demo Log.');
+      return;
+    }
+
     if (!selectedFile) {
       setAnalysisErrorMessage('Choose a local synthetic log file before analyzing.');
       return;
@@ -135,6 +137,15 @@ function App() {
   }
 
   function updateIncidentStatus(incidentId: number, status: string) {
+    if (isPublicDemoMode) {
+      setIncidents((currentIncidents) =>
+        currentIncidents.map((incident) =>
+          incident.id === incidentId ? { ...incident, status } : incident,
+        ),
+      );
+      return;
+    }
+
     fetch(`http://localhost:8080/api/incidents/${incidentId}/status`, {
       method: 'PATCH',
       headers: {
@@ -163,6 +174,15 @@ function App() {
   }
 
   function updateIncidentNotes(incidentId: number, notes: string) {
+    if (isPublicDemoMode) {
+      setIncidents((currentIncidents) =>
+        currentIncidents.map((incident) =>
+          incident.id === incidentId ? { ...incident, notes } : incident,
+        ),
+      );
+      return;
+    }
+
     fetch(`http://localhost:8080/api/incidents/${incidentId}/notes`, {
       method: 'PATCH',
       headers: {
@@ -227,6 +247,16 @@ function App() {
           </div>
         </section>
 
+        {isPublicDemoMode && (
+          <section className="demo-mode-banner">
+            <strong>Public demo mode</strong>
+            <span>
+              This hosted view uses built-in synthetic data only. Real file upload and backend data
+              storage are disabled.
+            </span>
+          </section>
+        )}
+
         <section className="role-panel" aria-label="Demo role selector">
           <div>
             <p className="eyebrow">Mock role layer</p>
@@ -267,7 +297,7 @@ function App() {
         <section className="content-section" id="incidents">
           <div className="section-heading">
             <div>
-              <p className="eyebrow">Live backend data</p>
+              <p className="eyebrow">Incident data</p>
               <h3>Incidents</h3>
             </div>
           </div>
@@ -363,39 +393,48 @@ function App() {
             Use only synthetic, sanitized, or lab-generated logs.
           </p>
 
-          <div className="upload-panel">
-            <div>
-              <h4>Local Developer Upload</h4>
-              <p>
-                For learning only. Allowed file types: .txt, .log, .csv, .json. Maximum file size:
-                1 MB. Public demos should prefer the built-in demo log instead.
-              </p>
+          {!isPublicDemoMode && (
+            <div className="upload-panel">
+              <div>
+                <h4>Local Developer Upload</h4>
+                <p>
+                  For learning only. Allowed file types: .txt, .log, .csv, .json. Maximum file
+                  size: 1 MB. Public demos should prefer the built-in demo log instead.
+                </p>
+              </div>
+
+              <div className="upload-controls">
+                <input
+                  aria-label="Choose a synthetic log file"
+                  type="file"
+                  accept=".txt,.log,.csv,.json"
+                  onChange={handleFileSelection}
+                />
+
+                <button
+                  className="secondary-button"
+                  type="button"
+                  onClick={analyzeSelectedFile}
+                  disabled={isAnalysisInProgress}
+                >
+                  {isUploadingFile ? 'Analyzing File...' : 'Analyze Selected File'}
+                </button>
+              </div>
+
+              {selectedFile && (
+                <p className="selected-file">
+                  Selected file: <strong>{selectedFile.name}</strong>
+                </p>
+              )}
             </div>
+          )}
 
-            <div className="upload-controls">
-              <input
-                aria-label="Choose a synthetic log file"
-                type="file"
-                accept=".txt,.log,.csv,.json"
-                onChange={handleFileSelection}
-              />
-
-              <button
-                className="secondary-button"
-                type="button"
-                onClick={analyzeSelectedFile}
-                disabled={isAnalysisInProgress}
-              >
-                {isUploadingFile ? 'Analyzing File...' : 'Analyze Selected File'}
-              </button>
-            </div>
-
-            {selectedFile && (
-              <p className="selected-file">
-                Selected file: <strong>{selectedFile.name}</strong>
-              </p>
-            )}
-          </div>
+          {isPublicDemoMode && (
+            <p className="demo-upload-disabled">
+              File upload is disabled in this public demo. Use the built-in demo log to view safe,
+              synthetic parser results.
+            </p>
+          )}
 
           {analysisErrorMessage && <p className="state-message error">{analysisErrorMessage}</p>}
 

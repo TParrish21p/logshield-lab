@@ -458,6 +458,32 @@ a {
   color: #64748b;
 }
 
+.demo-mode-banner,
+.demo-upload-disabled {
+  border: 1px solid rgba(251, 191, 36, 0.28);
+  border-radius: 8px;
+  background: rgba(251, 191, 36, 0.1);
+  color: #fde68a;
+}
+
+.demo-mode-banner {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 12px;
+  align-items: center;
+  padding: 14px 16px;
+}
+
+.demo-mode-banner strong {
+  color: #fef3c7;
+}
+
+.demo-upload-disabled {
+  margin: 18px 0 0;
+  padding: 14px;
+  line-height: 1.6;
+}
+
 @media (max-width: 860px) {
     .role-panel {
     align-items: stretch;
