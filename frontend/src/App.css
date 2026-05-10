@@ -344,6 +344,62 @@ a {
   white-space: pre-wrap;
 }
 
+.upload-panel {
+  display: grid;
+  gap: 14px;
+  margin-top: 18px;
+  padding: 16px;
+  border: 1px solid rgba(148, 163, 184, 0.22);
+  border-radius: 8px;
+  background: rgba(8, 17, 31, 0.66);
+}
+
+.upload-panel h4 {
+  margin: 0 0 8px;
+}
+
+.upload-panel p {
+  margin: 0;
+  color: #cbd5e1;
+  line-height: 1.6;
+}
+
+.upload-controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  align-items: center;
+}
+
+.upload-controls input {
+  max-width: 100%;
+  color: #cbd5e1;
+}
+
+.secondary-button {
+  min-height: 40px;
+  padding: 0 14px;
+  border: 1px solid rgba(148, 163, 184, 0.34);
+  border-radius: 6px;
+  background: rgba(30, 41, 59, 0.72);
+  color: #e2e8f0;
+  cursor: pointer;
+  font-weight: 800;
+}
+
+.secondary-button:hover:not(:disabled) {
+  background: rgba(51, 65, 85, 0.82);
+}
+
+.secondary-button:disabled {
+  cursor: not-allowed;
+  opacity: 0.65;
+}
+
+.selected-file {
+  color: #a7f3d0;
+}
+
 @media (max-width: 860px) {
   .app-shell {
     grid-template-columns: 1fr;

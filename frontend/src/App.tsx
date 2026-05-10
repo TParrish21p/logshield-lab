@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import type { ChangeEvent } from 'react';
 import './App.css';
 
 type Incident = {
@@ -32,7 +33,9 @@ function App() {
   const [errorMessage, setErrorMessage] = useState('');
   const [parserResult, setParserResult] = useState<ParserResult | null>(null);
   const [isAnalyzingDemo, setIsAnalyzingDemo] = useState(false);
+  const [isUploadingFile, setIsUploadingFile] = useState(false);
   const [analysisErrorMessage, setAnalysisErrorMessage] = useState('');
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
 
   useEffect(() => {
     fetch('http://localhost:8080/api/incidents')
@@ -80,8 +83,53 @@ function App() {
       });
   }
 
+  function handleFileSelection(event: ChangeEvent<HTMLInputElement>) {
+    const file = event.target.files?.[0] || null;
+    setSelectedFile(file);
+    setAnalysisErrorMessage('');
+  }
+
+  function analyzeSelectedFile() {
+    if (!selectedFile) {
+      setAnalysisErrorMessage('Choose a local synthetic log file before analyzing.');
+      return;
+    }
+
+    const formData = new FormData();
+    formData.append('file', selectedFile);
+
+    setIsUploadingFile(true);
+    setAnalysisErrorMessage('');
+    setParserResult(null);
+
+    fetch('http://localhost:8080/api/upload/analyze', {
+      method: 'POST',
+      body: formData,
+    })
+      .then((response) => {
+        if (!response.ok) {
+          return response.json().then((data) => {
+            throw new Error(data.error || 'Could not analyze the selected file.');
+          });
+        }
+
+        return response.json();
+      })
+      .then((data) => {
+        setParserResult(data);
+        setIsUploadingFile(false);
+      })
+      .catch((error) => {
+        setAnalysisErrorMessage(
+          `${error.message} Use only .txt, .log, .csv, or .json files under 1 MB with synthetic data.`,
+        );
+        setIsUploadingFile(false);
+      });
+  }
+
   const highSeverityCount = incidents.filter((incident) => incident.severity === 'HIGH').length;
   const openIncidentCount = incidents.filter((incident) => incident.status === 'OPEN').length;
+  const isAnalysisInProgress = isAnalyzingDemo || isUploadingFile;
 
   return (
     <div className="app-shell">
@@ -188,11 +236,16 @@ function App() {
         <section className="content-section" id="upload">
           <div className="section-heading">
             <div>
-              <p className="eyebrow">Built-in synthetic log</p>
-              <h3>Demo Log Analysis</h3>
+              <p className="eyebrow">Synthetic logs only</p>
+              <h3>Log Analysis Lab</h3>
             </div>
 
-            <button className="primary-button" type="button" onClick={analyzeDemoLog} disabled={isAnalyzingDemo}>
+            <button
+              className="primary-button"
+              type="button"
+              onClick={analyzeDemoLog}
+              disabled={isAnalysisInProgress}
+            >
               {isAnalyzingDemo ? 'Analyzing...' : 'Analyze Demo Log'}
             </button>
           </div>
@@ -202,6 +255,40 @@ function App() {
             data, healthcare data, company secrets, regulated data, or other sensitive information.
             Use only synthetic, sanitized, or lab-generated logs.
           </p>
+
+          <div className="upload-panel">
+            <div>
+              <h4>Local Developer Upload</h4>
+              <p>
+                For learning only. Allowed file types: .txt, .log, .csv, .json. Maximum file size:
+                1 MB. Public demos should prefer the built-in demo log instead.
+              </p>
+            </div>
+
+            <div className="upload-controls">
+              <input
+                aria-label="Choose a synthetic log file"
+                type="file"
+                accept=".txt,.log,.csv,.json"
+                onChange={handleFileSelection}
+              />
+
+              <button
+                className="secondary-button"
+                type="button"
+                onClick={analyzeSelectedFile}
+                disabled={isAnalysisInProgress}
+              >
+                {isUploadingFile ? 'Analyzing File...' : 'Analyze Selected File'}
+              </button>
+            </div>
+
+            {selectedFile && (
+              <p className="selected-file">
+                Selected file: <strong>{selectedFile.name}</strong>
+              </p>
+            )}
+          </div>
 
           {analysisErrorMessage && <p className="state-message error">{analysisErrorMessage}</p>}
 
