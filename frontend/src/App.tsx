@@ -27,6 +27,8 @@ type ParserResult = {
   redactedPreview: string[];
 };
 
+type DemoRole = 'ADMIN' | 'ANALYST' | 'VIEWER';
+
 function App() {
   const [incidents, setIncidents] = useState<Incident[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -36,8 +38,13 @@ function App() {
   const [isUploadingFile, setIsUploadingFile] = useState(false);
   const [analysisErrorMessage, setAnalysisErrorMessage] = useState('');
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [demoRole, setDemoRole] = useState<DemoRole>('ANALYST');
 
   useEffect(() => {
+    loadIncidents();
+  }, []);
+
+  function loadIncidents() {
     fetch('http://localhost:8080/api/incidents')
       .then((response) => {
         if (!response.ok) {
@@ -54,7 +61,7 @@ function App() {
         setErrorMessage(error.message);
         setIsLoading(false);
       });
-  }, []);
+  }
 
   function analyzeDemoLog() {
     setIsAnalyzingDemo(true);
@@ -127,9 +134,66 @@ function App() {
       });
   }
 
+  function updateIncidentStatus(incidentId: number, status: string) {
+    fetch(`http://localhost:8080/api/incidents/${incidentId}/status`, {
+      method: 'PATCH',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-Demo-Role': demoRole,
+      },
+      body: JSON.stringify({ status }),
+    })
+      .then((response) => {
+        if (!response.ok) {
+          throw new Error('Current demo role cannot update incident status.');
+        }
+
+        return response.json();
+      })
+      .then((updatedIncident) => {
+        setIncidents((currentIncidents) =>
+          currentIncidents.map((incident) =>
+            incident.id === updatedIncident.id ? updatedIncident : incident,
+          ),
+        );
+      })
+      .catch((error) => {
+        setErrorMessage(error.message);
+      });
+  }
+
+  function updateIncidentNotes(incidentId: number, notes: string) {
+    fetch(`http://localhost:8080/api/incidents/${incidentId}/notes`, {
+      method: 'PATCH',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-Demo-Role': demoRole,
+      },
+      body: JSON.stringify({ notes }),
+    })
+      .then((response) => {
+        if (!response.ok) {
+          throw new Error('Current demo role cannot update analyst notes.');
+        }
+
+        return response.json();
+      })
+      .then((updatedIncident) => {
+        setIncidents((currentIncidents) =>
+          currentIncidents.map((incident) =>
+            incident.id === updatedIncident.id ? updatedIncident : incident,
+          ),
+        );
+      })
+      .catch((error) => {
+        setErrorMessage(error.message);
+      });
+  }
+
   const highSeverityCount = incidents.filter((incident) => incident.severity === 'HIGH').length;
   const openIncidentCount = incidents.filter((incident) => incident.status === 'OPEN').length;
   const isAnalysisInProgress = isAnalyzingDemo || isUploadingFile;
+  const canEditIncidents = demoRole === 'ADMIN' || demoRole === 'ANALYST';
 
   return (
     <div className="app-shell">
@@ -161,6 +225,26 @@ function App() {
               for production, compliance, or real sensitive data.
             </p>
           </div>
+        </section>
+
+        <section className="role-panel" aria-label="Demo role selector">
+          <div>
+            <p className="eyebrow">Mock role layer</p>
+            <h3>Demo Access Mode</h3>
+            <p>
+              This is not real authentication yet. It demonstrates role-based behavior before Spring
+              Security is added.
+            </p>
+          </div>
+
+          <label>
+            Current role
+            <select value={demoRole} onChange={(event) => setDemoRole(event.target.value as DemoRole)}>
+              <option value="ADMIN">Admin</option>
+              <option value="ANALYST">Analyst</option>
+              <option value="VIEWER">Viewer</option>
+            </select>
+          </label>
         </section>
 
         <section className="summary-grid" aria-label="Incident summary">
@@ -221,10 +305,33 @@ function App() {
                         </span>
                       </td>
                       <td>
-                        <span className="badge status-badge">{incident.status}</span>
+                        {canEditIncidents ? (
+                          <select
+                            className="table-select"
+                            value={incident.status}
+                            onChange={(event) => updateIncidentStatus(incident.id, event.target.value)}
+                          >
+                            <option value="OPEN">Open</option>
+                            <option value="TRIAGE">Triage</option>
+                            <option value="RESOLVED">Resolved</option>
+                          </select>
+                        ) : (
+                          <span className="badge status-badge">{incident.status}</span>
+                        )}
                       </td>
                       <td>{incident.source}</td>
-                      <td>{incident.notes || 'No notes yet'}</td>
+                      <td>
+                        {canEditIncidents ? (
+                          <textarea
+                            className="notes-input"
+                            value={incident.notes}
+                            placeholder="Add analyst notes"
+                            onChange={(event) => updateIncidentNotes(incident.id, event.target.value)}
+                          />
+                        ) : (
+                          incident.notes || 'Read-only'
+                        )}
+                      </td>
                     </tr>
                   ))}
                 </tbody>
