@@ -10,18 +10,20 @@ public class Incident {
     private String severity;
     private String status;
     private String source;
+    private String notes;
     private Instant createdAt;
 
     public Incident() {
     }
 
-    public Incident(Long id, String title, String description, String severity, String status, String source, Instant createdAt) {
+    public Incident(Long id, String title, String description, String severity, String status, String source, String notes, Instant createdAt) {
         this.id = id;
         this.title = title;
         this.description = description;
         this.severity = severity;
         this.status = status;
         this.source = source;
+        this.notes = notes;
         this.createdAt = createdAt;
     }
 
@@ -47,6 +49,10 @@ public class Incident {
 
     public String getSource() {
         return source;
+    }
+
+    public String getNotes() {
+        return notes;
     }
 
     public Instant getCreatedAt() {
@@ -75,6 +81,10 @@ public class Incident {
 
     public void setSource(String source) {
         this.source = source;
+    }
+
+    public void setNotes(String notes) {
+        this.notes = notes;
     }
 
     public void setCreatedAt(Instant createdAt) {

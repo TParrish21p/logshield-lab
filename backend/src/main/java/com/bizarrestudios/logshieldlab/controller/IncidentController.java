@@ -28,6 +28,7 @@ public class IncidentController {
                 "HIGH",
                 "OPEN",
                 "demo-auth.log",
+                "",
                 Instant.now()
         ));
 
@@ -38,6 +39,7 @@ public class IncidentController {
                 "MEDIUM",
                 "TRIAGE",
                 "demo-auth.log",
+                "",
                 Instant.now()
         ));
     }
@@ -51,13 +53,27 @@ public class IncidentController {
     public Incident updateIncidentStatus(@PathVariable Long id, @RequestBody Map<String, String> requestBody) {
         String newStatus = requestBody.get("status");
 
-        Incident incident = incidents.stream()
+        Incident incident = findIncidentById(id);
+        incident.setStatus(newStatus);
+
+        return incident;
+    }
+
+    @PatchMapping("/api/incidents/{id}/notes")
+    public Incident updateIncidentNotes(@PathVariable Long id, @RequestBody Map<String, String> requestBody) {
+        String notes = requestBody.get("notes");
+
+        Incident incident = findIncidentById(id);
+        incident.setNotes(notes);
+
+        return incident;
+    }
+
+    private Incident findIncidentById(Long id) {
+        return incidents.stream()
                 .filter(item -> item.getId().equals(id))
                 .findFirst()
                 .orElseThrow(IncidentNotFoundException::new);
-
-        incident.setStatus(newStatus);
-        return incident;
     }
 
     @ResponseStatus(HttpStatus.NOT_FOUND)
