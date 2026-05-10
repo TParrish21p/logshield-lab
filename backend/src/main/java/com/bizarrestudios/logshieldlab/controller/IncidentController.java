@@ -3,8 +3,14 @@ package com.bizarrestudios.logshieldlab.controller;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
+import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.bizarrestudios.logshieldlab.model.Incident;
@@ -39,5 +45,22 @@ public class IncidentController {
     @GetMapping("/api/incidents")
     public List<Incident> getIncidents() {
         return incidents;
+    }
+
+    @PatchMapping("/api/incidents/{id}/status")
+    public Incident updateIncidentStatus(@PathVariable Long id, @RequestBody Map<String, String> requestBody) {
+        String newStatus = requestBody.get("status");
+
+        Incident incident = incidents.stream()
+                .filter(item -> item.getId().equals(id))
+                .findFirst()
+                .orElseThrow(IncidentNotFoundException::new);
+
+        incident.setStatus(newStatus);
+        return incident;
+    }
+
+    @ResponseStatus(HttpStatus.NOT_FOUND)
+    private static class IncidentNotFoundException extends RuntimeException {
     }
 }
