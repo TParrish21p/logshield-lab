@@ -10,6 +10,26 @@ Do not upload real credentials, private keys, customer data, employee data, fina
 
 LogShield Lab is not a real SOC platform, compliance product, enterprise security tool, or production monitoring system.
 
+## Public Demo
+
+LogShield Lab includes a public-safe frontend demo mode for portfolio hosting.
+
+Public demo mode uses only built-in synthetic data. It does not require the Spring Boot backend, Python parser service, PostgreSQL, real uploads, real accounts, or real log data.
+
+In public demo mode:
+
+- Real file uploads are disabled
+- Backend API calls are disabled
+- Database writes are disabled
+- Parser service calls are simulated with built-in synthetic results
+- Changes happen only in browser memory and reset on page reload
+
+Run the public-safe demo locally from the frontend folder:
+
+```powershell
+npm run dev:demo
+
+
 ## Planned Architecture
 
 ```text
