@@ -12,6 +12,24 @@ https://logshield-lab.vercel.app
 
 The public demo is a frontend-only safe demo. It uses built-in synthetic data and does not accept real uploads.
 
+## Screenshots
+
+### Public Demo Dashboard
+
+![LogShield Lab public demo dashboard](docs/assets/screenshots/dashboard-public-demo.png)
+
+### Parser Results
+
+![LogShield Lab parser results](docs/assets/screenshots/parser-results-public-demo.png)
+
+## Architecture
+
+See the architecture diagrams:
+
+```text
+docs/architecture/architecture-diagram.md
+```
+
 ## Safety Notice
 
 Do not upload real credentials, private keys, customer data, employee data, financial data, healthcare data, company secrets, regulated data, or other sensitive information. Use only synthetic, sanitized, or lab-generated logs.
