@@ -12,10 +12,27 @@ type Incident = {
   createdAt: string;
 };
 
+type ParserAlert = {
+  title: string;
+  description: string;
+  severity: string;
+  source: string;
+  evidence: string;
+};
+
+type ParserResult = {
+  alertCount: number;
+  alerts: ParserAlert[];
+  redactedPreview: string[];
+};
+
 function App() {
   const [incidents, setIncidents] = useState<Incident[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState('');
+  const [parserResult, setParserResult] = useState<ParserResult | null>(null);
+  const [isAnalyzingDemo, setIsAnalyzingDemo] = useState(false);
+  const [analysisErrorMessage, setAnalysisErrorMessage] = useState('');
 
   useEffect(() => {
     fetch('http://localhost:8080/api/incidents')
@@ -36,6 +53,33 @@ function App() {
       });
   }, []);
 
+  function analyzeDemoLog() {
+    setIsAnalyzingDemo(true);
+    setAnalysisErrorMessage('');
+    setParserResult(null);
+
+    fetch('http://localhost:8080/api/demo/analyze', {
+      method: 'POST',
+    })
+      .then((response) => {
+        if (!response.ok) {
+          throw new Error('Could not analyze the demo log.');
+        }
+
+        return response.json();
+      })
+      .then((data) => {
+        setParserResult(data);
+        setIsAnalyzingDemo(false);
+      })
+      .catch((error) => {
+        setAnalysisErrorMessage(
+          `${error.message} Make sure both the Spring Boot backend and Python parser service are running.`,
+        );
+        setIsAnalyzingDemo(false);
+      });
+  }
+
   const highSeverityCount = incidents.filter((incident) => incident.severity === 'HIGH').length;
   const openIncidentCount = incidents.filter((incident) => incident.status === 'OPEN').length;
 
@@ -45,14 +89,14 @@ function App() {
         <div>
           <p className="eyebrow">Bizarre Studios</p>
           <h1>LogShield Lab</h1>
-        </div>
 
-        <nav className="nav-links" aria-label="Main navigation">
-          <a href="#dashboard">Dashboard</a>
-          <a href="#incidents">Incidents</a>
-          <a href="#upload">Demo Logs</a>
-          <a href="#notes">Notes</a>
-        </nav>
+          <nav className="nav-links" aria-label="Main navigation">
+            <a href="#dashboard">Dashboard</a>
+            <a href="#incidents">Incidents</a>
+            <a href="#upload">Demo Logs</a>
+            <a href="#notes">Notes</a>
+          </nav>
+        </div>
 
         <p className="sidebar-footer">
           Built by Tyler Parrish under Bizarre Studios, a solo indie development brand.
@@ -144,9 +188,13 @@ function App() {
         <section className="content-section" id="upload">
           <div className="section-heading">
             <div>
-              <p className="eyebrow">Demo log area</p>
-              <h3>Safe Upload Placeholder</h3>
+              <p className="eyebrow">Built-in synthetic log</p>
+              <h3>Demo Log Analysis</h3>
             </div>
+
+            <button className="primary-button" type="button" onClick={analyzeDemoLog} disabled={isAnalyzingDemo}>
+              {isAnalyzingDemo ? 'Analyzing...' : 'Analyze Demo Log'}
+            </button>
           </div>
 
           <p className="warning-text">
@@ -154,6 +202,37 @@ function App() {
             data, healthcare data, company secrets, regulated data, or other sensitive information.
             Use only synthetic, sanitized, or lab-generated logs.
           </p>
+
+          {analysisErrorMessage && <p className="state-message error">{analysisErrorMessage}</p>}
+
+          {parserResult && (
+            <div className="analysis-results">
+              <div className="analysis-summary">
+                <span>Parser Alerts</span>
+                <strong>{parserResult.alertCount}</strong>
+              </div>
+
+              <div className="alert-list">
+                {parserResult.alerts.map((alert, index) => (
+                  <article className="alert-card" key={`${alert.title}-${index}`}>
+                    <div>
+                      <span className={`badge severity-${alert.severity.toLowerCase()}`}>
+                        {alert.severity}
+                      </span>
+                      <h4>{alert.title}</h4>
+                    </div>
+                    <p>{alert.description}</p>
+                    <code>{alert.evidence}</code>
+                  </article>
+                ))}
+              </div>
+
+              <div className="redacted-preview">
+                <h4>Redacted Preview</h4>
+                <pre>{parserResult.redactedPreview.join('\n')}</pre>
+              </div>
+            </div>
+          )}
         </section>
       </main>
     </div>
